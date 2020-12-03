@@ -11,6 +11,7 @@ import copy
 import struct
 import ctypes
 from operator import itemgetter
+import time
 #
 #
 #
@@ -186,6 +187,9 @@ class VidepCapture():
         #
         self._vcdll.Dev_SetFormatIndex(obj, 0)
         self._vcdll.Dev_SetStillFormatIndex(obj, 0)
+#
+#        self._vcdll.Dev_SetStillFormatIndex(obj, 0)
+#
         self._vcdll.Dev_Start(obj)
         return 0
 
@@ -334,6 +338,10 @@ class VidepCapture():
         if self._vcdll is None:
             return 1
         #
+        print("### self._vcdll.Dev_Stop()");
+        obj = self._dev_list[d_id][0];
+        self._vcdll.Dev_Stop(obj);
+
         return 0 # success
 
     def terminate(self):
@@ -346,6 +354,10 @@ class VidepCapture():
         self._vcdll = None
         return 0 # success
 
+    ############################################################################
+    # Dev_GetStillBuffer
+    # return buffer pointer
+    ############################################################################
     def bcget_buffer(self, d_id, s_id):
         print("VidepCapture::get_buffer(%d, %d)" % (d_id, s_id))
         if self._vcdll is None:
@@ -356,101 +368,9 @@ class VidepCapture():
         #
         obj = self._dev_list[d_id][0]
         p = self._vcdll.Dev_GetStillBuffer(obj, to)
-        print("get_buffer:{0} sensor][1]",p, s_id);
+        print("### get_buffer:{0} sensor:{1}".format(p, s_id));
         return p;
 
-def bcCapture(vc, dev_id, ld_id, sensor_id):
-    buff = ctypes.c_void_p(None)
-    res = vc.select_laser(dev_id, ld_id);
-    print("[res] select_laser:", res);
-    res = vc.trigger(dev_id, sensor_id);
-    print("[res] trigger:", res);
-    buff = vc.bcget_buffer(dev_id, sensor_id);
-    print("[res] get_buffer:", buff);
-    return buff
-
-def bcLaserSetting(vc, dev_id, ld_id, current, duration):
-
-    res = vc.select_laser(dev_id, ld_id);
-    print("[res] select_laser:", res);
-
-    res = vc.set_current_laser_setting(dev_id, current, duration)
-    print("[res] set_current_laser_setting:", res);
-
-    return res
-
-def bcTest2():
-    device_list = [0,1,2,3,4,5,6,7];    # 0 - 7
-    ld_list = [0,1,2,3];  # 0 - 3
-    sensor_list = [0,1,2,3]; # 0 - 3
-
-    vc = VidepCapture();
-
-    if vc is None:
-        print("vc is None")
-        return;
-    try:
-        vc.initialize();
-    except:
-        print("error")
-        #return
-    for dev_id in device_list:
-        print("### device:",dev_id);
-        try:
-            res = vc.start_device(dev_id);
-            print("res:", res);
-        except:
-            print("start_device error:");
-        for sensor_id in sensor_list:
-            print("### sensor:",sensor_id);
-            for ld_id in ld_list:
-                print("### ld:",ld_id);
-                fname = "cap_" + str(dev_id) + "_" + str(sensor_id) +"_" + str(ld_id) + ".raw";
-                print("### fname:",fname);
-            print("\n");
-        vc.stop_device(dev_id)
-    vc.terminate()
-
-
-
-
-def bcTest():
-    device_list = [0];    # 0 - 7
-    ld_list = [0,1,2,3];  # 0 - 3
-    sensor_list = [0,1,2,3]; # 0 - 3
-
-    vc = VidepCapture();
-    vc.initialize() ;
-
-    duration = 1000;
-    current = 50000;
-    buff_list = []
-
-    for dev_id in device_list:
-        print("### device:",dev_id);
-        vc.start_device(dev_id);
-        for sensor_id in sensor_list:
-            print("### sensor:",sensor_id);
-            buff_list = []
-            for ld_id in ld_list:
-                print("### ld:",ld_id);
-                res = bcLaserSetting(vc, dev_id, ld_id, current, duration)
-                buff = bcCapture(vc, dev_id, ld_id, sensor_id)
-                print(type(buff));
-                #image = ctypes.string_at(buff , 100);
-                buff_list.append(buff)
-            print("\n");
-            #print("buff_list]",buff_list)
-            for ld_id in ld_list:
-                fname = "cap_" + str(dev_id) + "_" + str(sensor_id) +"_" + str(ld_id) + ".raw";
-                print("### fname:",fname);
-                #image = ctypes.string_at(buff_list[ld_id] , 5664 * 4248 * 2)
-                #f = open (fname, "wb");
-                #f.write(image);
-                #f.close();
-        vc.stop_device(dev_id)
-    vc.terminate()
-    
 #
 #
 #
@@ -530,8 +450,113 @@ def main():
 #
 #
 #
+def bcCapture(vc, dev_id, ld_id, sensor_id):
+    buff = ctypes.c_void_p(None)
+    res = vc.select_laser(dev_id, ld_id);
+    print("[res] select_laser:", res);
+    res = vc.trigger(dev_id, sensor_id);
+    print("[res] trigger:", res);
+    buff = vc.bcget_buffer(dev_id, sensor_id);
+    print("[res] get_buffer:", buff);
+    return buff
+
+def bcSensorSetting(vc, dev_id, exposure, gain):
+    res = vc.set_exposure(dev_id, exposure);
+    print("[res] set_exposure:", res);
+    res = vc.set_gain(dev_id, gain);
+    print("[res] set_gain");
+
+def bcLaserSetting(vc, dev_id, ld_id, current, duration):
+
+    #res = vc.select_laser(dev_id, ld_id);
+    #print("[res] select_laser:", res);
+
+    #res = vc.set_current_laser_setting(dev_id, current, duration)
+    #print("[res] set_current_laser_setting:", res);
+    res = vc.set_laser_setting(dev_id , ld_id , current, duration);
+    print("vc.set_laser_setting:",res);
+    return res
+
+class BCDeviceList:
+    device_list = [0,1,2,3,4,5,6,7];    # 0 - 7
+    ld_list = [0,1,2,3];  # 0 - 3
+    sensor_list = [0,1,2,3]; # 0 - 3
+
+def BCPreparation(vc):
+
+    dl = BCDeviceList();
+
+    duration = 1000;
+    current = 50000;
+
+    for dev_id in dl.device_list:
+        vc.start_device(dev_id);
+        res = bcLaserSetting(vc, dev_id, 0, current, duration);
+        buff = bcCapture(vc, dev_id, 0, 0)
+        vc.stop_device(dev_id);
+
+def BCCaptureTest():
+
+    start = time.time()
+
+    dl = BCDeviceList();
+
+    duration = 1000;
+    current = 50000;
+
+    exposure = 100
+    gain = 0
+
+    buff_list = []
+
+
+    vc = VidepCapture();
+    vc.initialize() ;
+
+    BCPreparation(vc);
+
+
+    print("# start ########################################################");
+    for dev_id in dl.device_list:
+        print("### device:",dev_id);
+        for sensor_id in dl.sensor_list:
+            bcSensorSetting(vc, dev_id, exposure, gain)
+
+        vc.start_device(dev_id);
+        for sensor_id in dl.sensor_list:
+            print("### sensor:",sensor_id);
+            buff_list = []
+            for ld_id in dl.ld_list:
+                print("### ld:",ld_id);
+                res = bcLaserSetting(vc, dev_id, ld_id, current, duration)
+                #time.sleep(1);
+                buff = bcCapture(vc, dev_id, ld_id, sensor_id)
+                print(type(buff));
+                #image = ctypes.string_at(buff , 100);
+                buff_list.append(buff)
+            print("\n");
+            #print("buff_dl.list]",buff_list)
+            for ld_id in dl.ld_list:
+                fname = "cap_" + str(dev_id) + "_" + str(sensor_id) +"_" + str(ld_id) + ".raw";
+                print("### fname:",fname);
+                image = ctypes.string_at(buff_list[ld_id] , 5664 * 4248 * 2)
+                #f = open (fname, "wb");
+                #f.write(image);
+                #f.close();
+                with open(fname, 'wb') as f:
+                    f.write(image)
+        vc.stop_device(dev_id);
+    vc.terminate()
+
+    elapsed_time = time.time() - start
+    print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
+#
+#
+#
 if __name__=='__main__':
-    sts = bcTest()
+    sts = BCCaptureTest();
 #    sts = main()
     sys.exit(sts)
 #
+
