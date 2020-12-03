@@ -66,7 +66,6 @@ class VidepCapture():
         self._vcdll.Dev_SetStillFormatIndex.restype = ctypes.c_bool
         self._vcdll.Dev_Start.restype = ctypes.c_bool
         self._vcdll.Dev_Stop.restype = ctypes.c_bool
-        self._vcdll.Dev_StillTrigger.restype = ctypes.c_bool
         self._vcdll.Dev_GetExposureRange.restype = ctypes.c_bool
         self._vcdll.Dev_GetExposure.restype = ctypes.c_bool
         self._vcdll.Dev_SetExposure.restype = ctypes.c_bool
@@ -93,8 +92,9 @@ class VidepCapture():
         self._vcdll.Dev_SetCurrentLaserSetting.restype = ctypes.c_bool
         #self._vcdll.Dev_GetLaserOnOff.restype = ctypes.c_bool
         #self._vcdll.Dev_SetLaserOnOff.restype = ctypes.c_bool
-        self._vcdll.Dev_GetBuffer.restype = ctypes.c_long
         self._vcdll.Dev_StillTrigger.restype = ctypes.c_bool
+        self._vcdll.Dev_GetStillBuffer.restype  = ctypes.c_long
+        self._vcdll.Dev_GetBuffer.restype = ctypes.c_long
     #
     
     def __del__(self):
@@ -285,6 +285,17 @@ class VidepCapture():
         #
         return self.set_current_laser_setting(d_id, current, duration)
 
+    def select_sensor(self, d_id , s_id):
+        print("VidepCapture::select_sensor(%d, %d)" % (d_id, s_id))
+        if self._vcdll is None:
+            return 1
+        #
+        obj = self._dev_list[d_id][0]
+        # select a sensor to capture
+        self._vcdll.Dev_SetCurrentSensorNumber(obj, s_id)
+        
+        return 0
+
     # Acquisition:
     #   triggers a sequence of acquisitions
     #   on the s_id given the laser channel configuration
@@ -295,15 +306,16 @@ class VidepCapture():
         #
         obj = self._dev_list[d_id][0]
         # select a sensor to capture
-        self._vcdll.Dev_SetCurrentSensorNumber(obj, s_id)
+        #self._vcdll.Dev_SetCurrentSensorNumber(obj, s_id)
         # capture
         self._vcdll.Dev_StillTrigger(obj)
         return 0 # success
         
-    def get_buffer(self, d_id, s_id, buffer):
+    def get_buffer(self, d_id, s_id):
         print("VidepCapture::get_buffer(%d, %d)" % (d_id, s_id))
+        buffer = ctypes.c_void_p(None)
         if self._vcdll is None:
-            return 1
+            return buffer
         #
         timeout = 2000 # dummy
         to = ctypes.c_int(timeout)
@@ -312,9 +324,8 @@ class VidepCapture():
         p = self._vcdll.Dev_GetStillBuffer(obj, to)
         if p:
             buffer = p
-        else:
-            print(1)
         #
+        return buffer
         
         # returns 0 if success, …,
         # buffer pointer point to an array in RAM of size 4 x 5664 x 4248 x 2 bytes
@@ -324,7 +335,7 @@ class VidepCapture():
         #             and ignore the old data in the buffer,
         #               i.e. the app has to make sure it strictly follows “trigger getbuffer” sequences
         #               on any sensor or returns 0
-        return 0
+        #return 0
 
     # stop_device(), then terminate()
     def stop_device(self, d_id):
@@ -385,12 +396,13 @@ def main():
     l_id = 0
     vc.select_laser(d_id, l_id)
     #
-    vc.set_exposure(d_id, exposure)
-    vc.set_gain(d_id, gain)
-    #
     vc.start_device(d_id)
     #
     s_id = 0
+    vc.select_sensor(d_id , s_id)
+    vc.set_exposure(d_id, exposure)
+    vc.set_gain(d_id, gain)
+    #
     vc.select_laser(d_id, 0)
     vc.trigger(d_id, s_id) # capture images with different LDs sequencialy.
     vc.get_buffer(d_id, s_id, buf0)
@@ -403,15 +415,28 @@ def main():
     vc.trigger(d_id, s_id) # capture images with different LDs sequencialy.
     vc.get_buffer(d_id, s_id, buf0)
     #
+    #
+    #
+    vc.select_laser(d_id, 0)
+    #
     s_id = 1
+    vc.select_sensor(d_id , s_id)
+    vc.set_exposure(d_id, exposure)
+    vc.set_gain(d_id, gain)
     vc.trigger(d_id, s_id)
     vc.get_buffer(d_id, s_id, buf1)
     #
     s_id = 2
+    vc.select_sensor(d_id , s_id)
+    vc.set_exposure(d_id, exposure)
+    vc.set_gain(d_id, gain)
     vc.trigger(d_id, s_id)
     vc.get_buffer(d_id, s_id, buf2)
     #
     s_id = 3
+    vc.select_sensor(d_id , s_id)
+    vc.set_exposure(d_id, exposure)
+    vc.set_gain(d_id, gain)
     vc.trigger(d_id, s_id)
     vc.get_buffer(d_id, s_id, buf3)
     #
