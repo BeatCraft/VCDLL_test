@@ -345,10 +345,6 @@ class VidepCapture():
         #
         obj = self._dev_list[d_id][0];
         self._vcdll.Dev_Stop(obj);
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
         return 0 # success
 
     def terminate(self):
