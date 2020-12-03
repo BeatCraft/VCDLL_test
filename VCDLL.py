@@ -43,7 +43,7 @@ class VidepCapture():
                 self._vcdll = ctypes.cdll.LoadLibrary("/Users/lesser/VCDLL_dummy/VCDLL.dylib")
             elif sys.platform.startswith('linux'):
                 print("linux")
-                self._vcdll = ctypes.cdll.LoadLibrary("/home/beat/VCDLL_dummy/libVCDLL.so")
+                self._vcdll = ctypes.cdll.LoadLibrary("/home/beat/LFI/libVCDLL.so")
             else:
                 print("error : platform is not suppoerted")
                 return None
@@ -119,7 +119,7 @@ class VidepCapture():
             buf = ctypes.create_string_buffer(10)
             obj = ctypes.c_void_p(self._vcdll.Dev_NewObject(i))
             self._vcdll.Dev_GetSerialNumber(obj, buf, 8)
-            line = "%s" % buf.value
+            line = "%s" % buf.value.decode()
             sn = (obj, line[:1], line[1:6], line[6:8])
             self._dev_list.append(sn)
         #
@@ -343,6 +343,9 @@ class VidepCapture():
         if self._vcdll is None:
             return 1
         #
+        obj = self._dev_list[d_id][0];
+        self._vcdll.Dev_Stop(obj);
+
         return 0 # success
 
     def terminate(self):
