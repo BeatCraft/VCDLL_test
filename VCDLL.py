@@ -192,6 +192,12 @@ class VidepCapture():
         if self._vcdll is None:
             return 1
         #
+        buf = ctypes.create_string_buffer(10)
+        obj = self._dev_list[d_id][0]
+        self._vcdll.Dev_GetSerialNumber(obj, buf, 8)
+        sn = "%s" % buf.value.decode()
+        #sn = (obj, line[:1], line[1:6], line[6:8])
+        #self._dev_list.append(sn)
         return sn
 
     def set_device_sn(self, d_id , sn):
@@ -199,6 +205,13 @@ class VidepCapture():
         if self._vcdll is None:
             return 1
         #
+        if len(sn)>8:
+            return 1
+        #
+        buf = ctypes.create_string_buffer(sn)
+        obj = self._dev_list[d_id][0]
+        self._vcdll.Dev_SetSerialNumber(obj, buf, 8)
+
         return 0
     
     # all sensors on the device have the same gain setting
@@ -387,6 +400,11 @@ def main():
     vc = VidepCapture()
     # objects for all connected decives are allocated.
     vc.initialize()
+    print vc.get_device_sn(0)
+    #print vc.set_device_sn(0, "20000000")
+    print vc.get_device_sn(0)
+
+    return 0
     # laser setting
     vc.set_laser_setting(d_id , l_id , current, duration)
     l_id = 1
