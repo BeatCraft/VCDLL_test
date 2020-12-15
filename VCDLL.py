@@ -196,8 +196,6 @@ class VidepCapture():
         obj = self._dev_list[d_id][0]
         self._vcdll.Dev_GetSerialNumber(obj, buf, 8)
         sn = "%s" % buf.value.decode()
-        #sn = (obj, line[:1], line[1:6], line[6:8])
-        #self._dev_list.append(sn)
         return sn
 
     def set_device_sn(self, d_id , sn):
@@ -250,6 +248,7 @@ class VidepCapture():
         return 1
 
     # 'current' means selected.
+    # arg:current is electric current
     def set_current_laser_setting(self, d_id, current, duration):
         print("set_current_laser_setting(%d, %d, %d)" % (d_id, current, duration))
         if self._vcdll is None:
