@@ -14,6 +14,8 @@ from operator import itemgetter
 #
 #
 #
+DEBUG = 0
+#
 NUM_DEVICE = 8
 NUM_SENSOR = 4
 NUM_LD = 4
@@ -24,7 +26,9 @@ NUM_LD = 4
 #
 class VidepCapture():
     def __init__(self):
-        print("VidepCapture::__init__()")
+        if DEBUG:
+            print("VidepCapture::__init__()")
+        #
         self._vcdll = None
         self._dev_list = []
         # keep valus for all LDs
@@ -98,7 +102,9 @@ class VidepCapture():
     #
     
     def __del__(self):
-        print("VidepCapture::__del__()")
+        if DEBUG:
+            print("VidepCapture::__del__()")
+        #
         if self._vcdll is None:
             pass
         else:
@@ -108,7 +114,9 @@ class VidepCapture():
         #
     
     def initialize(self):
-        print("VidepCapture::initialize()")
+        if DEBUG:
+            print("VidepCapture::initialize()")
+        #
         if self._vcdll is None:
             return 1
         #
@@ -141,14 +149,17 @@ class VidepCapture():
         return 0
 
     def enumerate_devices(self):
-        print("VidepCapture::enumerate_devices()")
+        if DEBUG:
+            print("VidepCapture::enumerate_devices()")
         if self._vcdll is None:
             return 1
         #
         return self._vcdll.Dev_EnumDevice()
 
     def get_sensor_detected(self, d_id):
-        print("VidepCapture::get_sensor_detected(%d)" % d_id)
+        if DEBUG:
+            print("VidepCapture::get_sensor_detected(%d)" % d_id)
+        #
         obj = self._dev_list[d_id][0]
         if obj:
             pass
@@ -172,7 +183,9 @@ class VidepCapture():
     # d_id is an uint (we assume 0 7 in current generation devices),
     # returns 0 if success
     def start_device(self, d_id):
-        print("VidepCapture::start_device()")
+        if DEBUG:
+            print("VidepCapture::start_device()")
+        #
         if self._vcdll is None:
             return 1
         #
@@ -188,7 +201,9 @@ class VidepCapture():
         return 0
 
     def get_device_sn(self, d_id):
-        print("VidepCapture::get_device_sn(%d)" % (d_id))
+        if DEBUG:
+            print("VidepCapture::get_device_sn(%d)" % (d_id))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -199,7 +214,9 @@ class VidepCapture():
         return sn
 
     def set_device_sn(self, d_id , sn):
-        print("VidepCapture::set_device_sn(%d, %s)" % (d_id, sn))
+        if DEBUG:
+            print("VidepCapture::set_device_sn(%d, %s)" % (d_id, sn))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -214,6 +231,9 @@ class VidepCapture():
     
     # all sensors on the device have the same gain setting
     def set_gain(self, d_id, gain):
+        if DEBUG:
+            print("VidepCapture::set_gain(%d, %d)" % (d_id, gain))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -227,6 +247,9 @@ class VidepCapture():
         return 0 # success
 
     def set_exposure(self, d_id, exposure):
+        if DEBUG:
+            print("VidepCapture::set_exposure(%d, %d)" % (d_id, exposure))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -240,17 +263,26 @@ class VidepCapture():
         return 0 # success
         
     def get_laser_current(self, d_id, l_id):
+        if DEBUG:
+            print("VidepCapture::get_laser_current(%d, %d)" % (d_id, l_id))
+        #
         print("get_laser_current() is obsolute. use get_laser_setting() instead.")
         return 0
     
     def set_laser_current(self, d_id, l_id, current):
+        if DEBUG:
+            print("VidepCapture::set_laser_current(%d, %d, %d)" % (d_id, l_id, current))
+        #
         print("set_laser_current() is obsolute. use set_laser_setting() instead.")
         return 1
 
     # 'current' means selected.
     # arg:current is electric current
     def set_current_laser_setting(self, d_id, current, duration):
-        print("set_current_laser_setting(%d, %d, %d)" % (d_id, current, duration))
+        if DEBUG:
+            print("VidepCapture::set_current_laser_setting(%d, %d, %d)" % (d_id, l_id, current, duration))
+        #
+        #print("set_current_laser_setting(%d, %d, %d)" % (d_id, current, duration))
         if self._vcdll is None:
             return 1
         #
@@ -264,7 +296,10 @@ class VidepCapture():
         return 0
 
     def set_current_laser_number(self, d_id, l_id):
-        print("set_current_laser_number(%d, %d)" % (d_id, l_id))
+        if DEBUG:
+            print("VidepCapture::set_current_laser_number(%d, %d, %d)" % (d_id, l_id))
+        #
+        #print("set_current_laser_number(%d, %d)" % (d_id, l_id))
         if self._vcdll is None:
             return 1
         #
@@ -278,10 +313,15 @@ class VidepCapture():
         return 0
         
     def select_laser(self, d_id, l_id):
+        if DEBUG:
+            print("VidepCapture::select_laser(%d, %d, %d)" % (d_id, l_id))
+        #
         return self.set_current_laser_number(d_id, l_id)
 
     def set_laser_setting(self, d_id, l_id, current, duration):
-        print("set_laser_setting(%d, %d, %d, %d)" % (d_id, l_id, current, duration))
+        if DEBUG:
+            print("VidepCapture::set_laser_setting(%d, %d, %d, %d)" % (d_id, l_id, current, duration))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -298,7 +338,9 @@ class VidepCapture():
         return self.set_current_laser_setting(d_id, current, duration)
 
     def select_sensor(self, d_id , s_id):
-        print("VidepCapture::select_sensor(%d, %d)" % (d_id, s_id))
+        if DEBUG:
+            print("VidepCapture::select_sensor(%d, %d)" % (d_id, s_id))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -312,7 +354,9 @@ class VidepCapture():
     #   triggers a sequence of acquisitions
     #   on the s_id given the laser channel configuration
     def trigger(self, d_id , s_id):
-        print("VidepCapture::trigger(%d, %d)" % (d_id, s_id))
+        if DEBUG:
+            print("VidepCapture::trigger(%d, %d)" % (d_id, s_id))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -324,7 +368,9 @@ class VidepCapture():
         return 0 # success
         
     def get_buffer(self, d_id, s_id):
-        print("VidepCapture::get_buffer(%d, %d)" % (d_id, s_id))
+        if DEBUG:
+            print("VidepCapture::get_buffer(%d, %d)" % (d_id, s_id))
+        #
         buffer = ctypes.c_void_p(None)
         if self._vcdll is None:
             return buffer
@@ -338,7 +384,6 @@ class VidepCapture():
             buffer = p
         #
         return buffer
-        
         # returns 0 if success, …,
         # buffer pointer point to an array in RAM of size 4 x 5664 x 4248 x 2 bytes
         #       NOTE: each sensor needs this size buffer,
@@ -351,7 +396,9 @@ class VidepCapture():
 
     # stop_device(), then terminate()
     def stop_device(self, d_id):
-        print("VidepCapture::stop_device(%d)" % (d_id))
+        if DEBUG:
+            print("VidepCapture::stop_device(%d)" % (d_id))
+        #
         if self._vcdll is None:
             return 1
         #
@@ -360,7 +407,9 @@ class VidepCapture():
         return 0 # success
 
     def terminate(self):
-        print("VidepCapture::terminate()")
+        if DEBUG:
+            print("VidepCapture::terminate()")
+        #
         if self._vcdll is None:
             return 1
         #
